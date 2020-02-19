@@ -1,0 +1,10 @@
+name: TelegramServerPlugin
+main: org.oznecniv97.telegramserverplugin.TelegramServerPlugin
+version: ${version}
+author: oznecniV97
+commands:
+  bot:
+    description: Command to startup, shutdown, set username, token and get status of the telegram bot
+    usage: /bot [startup | shutdown | set [username | token] <value> | status]
+    permission: TelegramServerPlugin.bot
+    permission-message: Command available only from console

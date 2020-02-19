@@ -1,0 +1,50 @@
+plugins {
+    // Apply the java-library plugin to add support for Java Library
+    id 'java-library'
+    id "io.freefair.lombok" version "4.1.6"
+}
+
+repositories {
+    // Use jcenter for resolving your dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+    //declaration of custom maven repository
+    maven{
+    	url "https://hub.spigotmc.org/nexus/content/repositories/public/"
+    }
+}
+
+dependencies {
+    implementation 'org.bukkit:bukkit:1.15.1-R0.1-SNAPSHOT'
+
+	compile 'org.telegram:telegrambots:4.4.0.2'
+	compile 'org.telegram:telegrambotsextensions:4.4.0.2'
+
+    // Use JUnit test framework
+    testImplementation 'junit:junit:4.12'
+
+}
+
+version = '0.0.1'
+def serverFolder = 'F:/Programmi/Minecraft/Servers/VanillaServer_Acquario_e_co_pre_RAMShard'
+def pluginsFolder = serverFolder+'/plugins'
+
+//Task per spostare i file sul server una volta fatta la build
+task buildToServer(type: Copy) {
+	doFirst {
+	    delete fileTree(pluginsFolder)
+	}
+    from jar
+    into pluginsFolder
+    finalizedBy{
+    	runServer
+    }
+}
+
+task runServer(type:Exec) {
+	doFirst{
+		println "Starting CraftBukkit server..."
+	}
+    workingDir = file(serverFolder)
+    commandLine = ['cmd', '/C', 'start', serverFolder+'/silentStartup.bat']
+}
