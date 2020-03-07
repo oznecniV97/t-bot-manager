@@ -98,7 +98,7 @@ public class PluginBotCommandExecutor extends AbstractCommandExecutor<TelegramSe
 	private void executeStartupCommand() {
 		//TODO spostare get delle configurazioni nel costruttore del bot?
 		try {
-			plugin.telegramBotsApi.registerBot(MinecraftServerBot.getInstance(plugin));
+			plugin.getTelegramBotsApi().registerBot(MinecraftServerBot.getInstance(plugin));
 		} catch(TelegramApiRequestException e) {
 			throw new RuntimePluginException(BukkitError.TELEGRAM_EXCEPTION, e);
 		}

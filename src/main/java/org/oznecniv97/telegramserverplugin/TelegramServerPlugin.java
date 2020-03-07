@@ -5,9 +5,12 @@ import org.oznecniv97.telegramserverplugin.bukkit.executor.PluginBotCommandExecu
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 
+import lombok.Getter;
+
+ @Getter
 public class TelegramServerPlugin extends JavaPlugin {
 
-    public TelegramBotsApi telegramBotsApi;
+    private TelegramBotsApi telegramBotsApi;
 
 	/*
 	 * codice per reperire i giocatori online
