@@ -5,7 +5,6 @@ import org.oznecniv97.telegramserverplugin.bukkit.executor.PluginBotCommandExecu
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 
-//TODO sincronizzare tutto su git, scegliere se come sorgente privato o pubblico
 public class TelegramServerPlugin extends JavaPlugin {
 
     public TelegramBotsApi telegramBotsApi;

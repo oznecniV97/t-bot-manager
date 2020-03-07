@@ -3,17 +3,19 @@ package org.oznecniv97.telegramserverplugin.bukkit.executor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.oznecniv97.telegramserverplugin.bukkit.enums.Error;
+import org.oznecniv97.telegramserverplugin.TelegramServerPlugin;
+import org.oznecniv97.telegramserverplugin.bukkit.enums.BukkitError;
 import org.oznecniv97.telegramserverplugin.bukkit.exception.RuntimePluginException;
 import org.oznecniv97.telegramserverplugin.bukkit.executor.generic.AbstractCommandExecutor;
+import org.oznecniv97.telegramserverplugin.telegram.commandbot.MinecraftServerBot;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-public class PluginBotCommandExecutor extends AbstractCommandExecutor {
+public class PluginBotCommandExecutor extends AbstractCommandExecutor<TelegramServerPlugin> {
 
-	public PluginBotCommandExecutor(JavaPlugin plugin) {
+	public PluginBotCommandExecutor(TelegramServerPlugin plugin) {
 		super(plugin);
 	}
 
@@ -41,17 +43,65 @@ public class PluginBotCommandExecutor extends AbstractCommandExecutor {
 			case STATUS:
 				executeStatusCommand();
 				break;
+			case RELOAD:
+				executeReloadCommand();
+				break;
 	    }
+	}
+
+	private BotCommand commandChecks(CommandSender sender, String[] args) {
+		//check if the command was not executed from server console
+		if (!(sender instanceof ConsoleCommandSender)) {
+			throw new RuntimePluginException(BukkitError.ONLY_CONSOLE_AVAILABLE);
+		}
+		//check if there's the first argument
+		if (args.length==0) {
+			throw new RuntimePluginException(BukkitError.NOT_ENOUGH_ARGUMENTS);
+		}
+		//check if there's the right number arguments
+		BotCommand botCommand = BotCommand.fromCommand(args[0]);
+		if(botCommand==null) {
+			throw new RuntimePluginException(BukkitError.UNRECOGNIZED_ARGUMENT);
+		}
+		if (args.length < botCommand.getRequiredArguments()) {
+			throw new RuntimePluginException(BukkitError.NOT_ENOUGH_ARGUMENTS);
+	    }
+		if (args.length > botCommand.getRequiredArguments()) {
+			throw new RuntimePluginException(BukkitError.TOO_MANY_ARGUMENTS);
+	    }
+		return botCommand;
 	}
 
 	private void executeSetCommand(String[] args) {
 		if(SetKey.fromKey(args[1])==null) {
-			throw new RuntimePluginException(Error.UNRECOGNIZED_ARGUMENT);
+			throw new RuntimePluginException(BukkitError.UNRECOGNIZED_ARGUMENT);
 		}
 		//TODO verificare che basta questo per creare un file di configurazione
 		//TODO verificare che basta questo per creare settare una variabile nel file
 		//TODO verificare che basta questo per creare salvare il file in modo tale che nel prossimo startup funzioni
 		plugin.getConfig().set(args[1].toLowerCase(), args[2]);
+	}
+
+	/**
+	 * Gestione comando di stop del bot di telegram
+	 */
+	private void executeShutdownCommand() {
+		// TODO Auto-generated method stub
+
+	}
+
+	/**
+	 * Gestione comando di start del bot di telegram
+	 * TODO controllare che il bot non sia startato prima di startarlo
+	 * TODO controllare che il config abbia tutti i campi necessari valorizzati
+	 */
+	private void executeStartupCommand() {
+		//TODO spostare get delle configurazioni nel costruttore del bot?
+		try {
+			plugin.telegramBotsApi.registerBot(MinecraftServerBot.getInstance(plugin));
+		} catch(TelegramApiRequestException e) {
+			throw new RuntimePluginException(BukkitError.TELEGRAM_EXCEPTION, e);
+		}
 	}
 
 	/**
@@ -63,42 +113,11 @@ public class PluginBotCommandExecutor extends AbstractCommandExecutor {
 	}
 
 	/**
-	 * Gestione comando di start del bot di telegram
+	 * Gestione comando per ricaricare le configurazioni modificate
 	 */
-	private void executeStartupCommand() {
+	private void executeReloadCommand() {
 		// TODO Auto-generated method stub
 
-	}
-
-	/**
-	 * Gestione comando di stop del bot di telegram
-	 */
-	private void executeShutdownCommand() {
-		// TODO Auto-generated method stub
-
-	}
-
-	private BotCommand commandChecks(CommandSender sender, String[] args) {
-		//check if the command was not executed from server console
-		if (!(sender instanceof ConsoleCommandSender)) {
-			throw new RuntimePluginException(Error.ONLY_CONSOLE_AVAILABLE);
-		}
-		//check if there's the first argument
-		if (args.length==0) {
-			throw new RuntimePluginException(Error.NOT_ENOUGH_ARGUMENTS);
-		}
-		//check if there's the right number arguments
-		BotCommand botCommand = BotCommand.fromCommand(args[0]);
-		if(botCommand==null) {
-			throw new RuntimePluginException(Error.UNRECOGNIZED_ARGUMENT);
-		}
-		if (args.length < botCommand.getRequiredArguments()) {
-			throw new RuntimePluginException(Error.NOT_ENOUGH_ARGUMENTS);
-	    }
-		if (args.length > botCommand.getRequiredArguments()) {
-			throw new RuntimePluginException(Error.TOO_MANY_ARGUMENTS);
-	    }
-		return botCommand;
 	}
 
 	@Getter
@@ -108,6 +127,7 @@ public class PluginBotCommandExecutor extends AbstractCommandExecutor {
 		,	SHUTDOWN	("shutdown"	, 1)
 		,	SET			("set"		, 3)
 		,	STATUS		("status"	, 1)
+		,	RELOAD		("reload"	, 1)
 		;
 
 		private final String command;
@@ -126,9 +146,9 @@ public class PluginBotCommandExecutor extends AbstractCommandExecutor {
 
 	@Getter
 	@RequiredArgsConstructor
-	private enum SetKey {
-			USERNAME("username")
-		,	TOKEN	("token")
+	public enum SetKey {
+			USERNAME("username"	)
+		,	TOKEN	("token"	)
 		;
 
 		private final String key;
